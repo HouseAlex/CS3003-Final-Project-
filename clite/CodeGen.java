@@ -14,7 +14,7 @@ public class CodeGen {
 	private Program prog; // Again hacky
 
 	private class Pair {
-			
+
 			Type type;
 			Integer index;
 
@@ -27,10 +27,10 @@ public class CodeGen {
 			}
 
 	}
-	
+
 	// The symbol table class allows us to map Clite Identifiers
 	// to Jasmin numeric storage
-	private class SymbolTable extends HashMap<Variable, Pair> { 
+	private class SymbolTable extends HashMap<Variable, Pair> {
 
 		Type getType (Variable v) {
 			return get(v).type;
@@ -52,8 +52,8 @@ public class CodeGen {
 			}
 			tm = tm.substring(0, tm.length() - 2) + " }";
 			System.out.println(tm);
-		  } 
-	
+		  }
+
 	}
 
 	void M (Program p, String filename) throws IOException {
@@ -78,30 +78,30 @@ public class CodeGen {
 
 		// initializing the global_symtable
 		global_symtable = new HashMap<String, Type>();
-		for (Declaration global : p.globals) 
+		for (Declaration global : p.globals)
 			global_symtable.put(global.v.id, global.t);
 
 		for (Function f : p.functions) {
 			M (f, symtable_hash, assem_out);
 		}
-		
+
 		assem_out.close();
 
     }
-  
+
     void init_symboltables (HashMap<String, SymbolTable> symtable_hash, Functions f) {
 	for (Function fi : f) {
 		symtable_hash.put(fi.id, init_symboltable(fi.params, fi.locals));
 	}
 
     }
-	
+
     SymbolTable init_symboltable (Declarations params, Declarations locals) {
-		// We must increment all local #s by one, because #0 is reserved 
+		// We must increment all local #s by one, because #0 is reserved
 		// (I think for the receiver object)
 	SymbolTable symtable = new SymbolTable();
 	int i = 0;
-        while (i < params.size()) { 
+        while (i < params.size()) {
 			symtable.put(params.get(i).v, new Pair(params.get(i).t, i));
 			i++;
 	}
@@ -115,31 +115,34 @@ public class CodeGen {
     }
 
     void M (Function f, HashMap<String, SymbolTable> symtable_hash, JasminFile jfile) throws IOException {
-	if (! f.id.equals("main")) {	
+	if (! f.id.equals("main")) {
 		jfile.function_preamble(f.id, f.t, f.params, f.locals);
-		M (f.body, symtable_hash.get(f.id), jfile);	
-		jfile.function_writeout(f.t);	
+		M (f.body, symtable_hash.get(f.id), jfile);
+		jfile.function_writeout(f.t);
 	} else {
 		jfile.main_preamble(f.locals);
-		M (f.body, symtable_hash.get(f.id), jfile);	
+		M (f.body, symtable_hash.get(f.id), jfile);
 		jfile.main_writeout();
 	}
     }
 
     void M (Statement s, SymbolTable symtable, JasminFile jfile) throws IOException {
-        if (s instanceof Skip) { 
+        if (s instanceof Skip) {
 			M((Skip)s, symtable, jfile);
 			return;
-        } if (s instanceof Assignment) { 
+        } if (s instanceof Assignment) {
 			M((Assignment)s, symtable, jfile);
 			return;
-        } if (s instanceof Conditional) { 
+        } if (s instanceof Conditional) {
 			M((Conditional)s, symtable, jfile);
 			return;
-        } if (s instanceof Loop) { 
+        } if (s instanceof Loop) {
 			M((Loop)s, symtable, jfile);
 			return;
-        } if (s instanceof Block) { 
+			if (s instanceof ForLoop) {  //for loop
+            M((ForLoop)s, symtable, jfile);
+            return;
+        } if (s instanceof Block) {
 			M((Block)s, symtable, jfile);
 			return;
 	} if (s instanceof Print) {
@@ -148,20 +151,20 @@ public class CodeGen {
 	} if (s instanceof CallStatement) {
 			M((CallStatement)s, symtable, jfile);
 			return;
-	} if (s instanceof Return) {	
+	} if (s instanceof Return) {
 			M((Return)s, symtable, jfile);
 			return;
-	}	
+	}
         throw new IllegalArgumentException("should never reach here");
     }
-  
+
     void M (Skip s, SymbolTable symtable, JasminFile jfile) {
 		return;
     }
-  
+
     void M (Assignment a, SymbolTable symtable, JasminFile jfile) throws IOException {
 		// write the meaning of the source expression
-		M(a.source, symtable, jfile); // this should write the expression 
+		M(a.source, symtable, jfile); // this should write the expression
 									  // onto the stack
 
 		// This has a chance to fail if the variable is a global
@@ -182,17 +185,17 @@ public class CodeGen {
 		} else { // this node is trying to assign a global
 			String type;
 			Type descriptor = global_symtable.get(target.id);
-			if (descriptor.equals(Type.INT) || 
-			descriptor.equals(Type.BOOL) || 
+			if (descriptor.equals(Type.INT) ||
+			descriptor.equals(Type.BOOL) ||
 			descriptor.equals(Type.CHAR))
 				type = "I";
 			else // it's a float
 				type = "F";
-			jfile.writeln("putstatic " + jfile.get_class() + "/" 
+			jfile.writeln("putstatic " + jfile.get_class() + "/"
 			+ target + " " + type);
 		}
     }
-  
+
     void M (Block b, SymbolTable symtable, JasminFile jfile) throws IOException {
 		// for each statement in the block write the assembly of the statement
         for (Statement s : b.members) {
@@ -205,7 +208,7 @@ public class CodeGen {
 		// translate conditional
 		// 		translate the bodies of each conditional
 		//
-	
+
 		// the conditional will result in either 1 (true) or 0 (false)
 		// being pushed to the stack
 	int current_branch_cnt = branch_cnt;
@@ -220,11 +223,11 @@ public class CodeGen {
 	jfile.writeln();
 
 	jfile.writeln("TRUE" + current_branch_cnt + ":");
-	M(c.thenbranch, symtable, jfile);	
+	M(c.thenbranch, symtable, jfile);
 
 	if (! c.mustReturn()) {
 		jfile.writeln("goto COMPLETE" + current_branch_cnt);
-		
+
 		jfile.writeln();
 	}
 
@@ -232,13 +235,13 @@ public class CodeGen {
 	M(c.elsebranch, symtable, jfile);
 
 	jfile.writeln();
-	
-	if (! c.mustReturn()) 
+
+	if (! c.mustReturn())
 		jfile.writeln("COMPLETE" + current_branch_cnt + ":");
-	
+
 
     }
-   
+
     void M (Loop l, SymbolTable symtable, JasminFile jfile) throws IOException {
 		// translate the conditional
 		//		translate the body
@@ -250,58 +253,79 @@ public class CodeGen {
 
 	jfile.writeln("LOOPTEST" + current_branch_cnt + ":");
 	M(l.test, symtable, jfile);
-	
+
 	jfile.writeln();
 	jfile.writeln("ifne LOOPBODY" + current_branch_cnt);
-	jfile.writeln("goto LOOPEXIT" + current_branch_cnt); 
+	jfile.writeln("goto LOOPEXIT" + current_branch_cnt);
 
 	jfile.writeln("LOOPBODY" + current_branch_cnt + ":");
 	M(l.body, symtable, jfile);
 	jfile.writeln("goto LOOPTEST" + current_branch_cnt);
 
 	jfile.writeln("LOOPEXIT" + current_branch_cnt + ":");
-	
+
     }
 
     void M (Print p, SymbolTable symtable, JasminFile jfile) throws IOException {
 	jfile.writeln("getstatic java/lang/System/out Ljava/io/PrintStream;");
 
+	void M (ForLoop f, SymbolTable symtable, JasminFile jfile) throws IOException {		//needs work
+
+    int current_branch_cnt = branch_cnt;
+    branch_cnt++;
+
+    jfile.writeln();
+		jfile.writeln("LOOPTEST" + current_branch_cnt + ":");
+		M(f.test, symtable, jfile);
+
+		jfile.writeln();
+		jfile.writeln("ifne LOOPBODY" + current_branch_cnt);
+		jfile.writeln("goto LOOPEXIT" + current_branch_cnt);
+
+		jfile.writeln("LOOPBODY" + current_branch_cnt + ":");
+		M(f.body, symtable, jfile);
+		jfile.writeln("goto LOOPTEST" + current_branch_cnt);
+
+		jfile.writeln("LOOPEXIT" + current_branch_cnt + ":");
+
+    }
+
 	M(p.to_print, symtable, jfile);
 
 	String print_type;
 	Type e_type = typeOf(p.to_print, symtable);
-	
-	if (e_type.equals(Type.FLOAT)) 
+
+	if (e_type.equals(Type.FLOAT))
 		print_type = "F";
 	else if (e_type.equals(Type.INT))
 		print_type = "I";
-	else if (e_type.equals(Type.CHAR)) 
+	else if (e_type.equals(Type.CHAR))
 		print_type = "C";
 	else //It's a Bool
 		print_type = "Z";
-	
+
 	jfile.writeln("invokevirtual java/io/PrintStream/println(" + print_type + ")V");
     }
 
-    void M (CallStatement c, SymbolTable symtable, JasminFile jfile) throws IOException {	
-	// evaluate the args and push them to the stack 		
-	for (Expression arg : c.args) 
+    void M (CallStatement c, SymbolTable symtable, JasminFile jfile) throws IOException {
+	// evaluate the args and push them to the stack
+	for (Expression arg : c.args)
 		M(arg, symtable, jfile);
 
 	Function callee = prog.functions.get(c.name);
 
 	String j_params = "";
 	for (Declaration pi : callee.params)
-		j_params += pi.t.to_jasmin();	
-	
-	jfile.writeln("invokestatic " + jfile.get_class() + "/" 
-	+ c.name + "(" + j_params + ")" + callee.t.to_jasmin()); 
+		j_params += pi.t.to_jasmin();
+
+	jfile.writeln("invokestatic " + jfile.get_class() + "/"
+	+ c.name + "(" + j_params + ")" + callee.t.to_jasmin());
     }
-	
+
     void M (Return r, SymbolTable symtable, JasminFile jfile) throws IOException {
 	M (r.result, symtable, jfile);
-	String j_type = typeOf(r.result, symtable).to_jasmin(); 
-	if (j_type.equals("I"))	
+	String j_type = typeOf(r.result, symtable).to_jasmin();
+	if (j_type.equals("I"))
 		jfile.writeln("ireturn");
 	else // it's gotta be a float
 		jfile.writeln("freturn");
@@ -311,7 +335,7 @@ public class CodeGen {
         if (e instanceof Value) return ((Value)e).type;
         if (e instanceof Variable) {
             Variable v = (Variable)e;
-	    if (sym.containsKey(v)) 
+	    if (sym.containsKey(v))
             	return (Type) sym.get(v).type;
 	    else // it's trying to access a global
 		return (Type) global_symtable.get(v.id);
@@ -322,7 +346,7 @@ public class CodeGen {
                 if (typeOf(b.term1,sym)== Type.FLOAT)
                     return (Type.FLOAT);
                 else return (Type.INT);
-            if (b.op.RelationalOp( ) || b.op.BooleanOp( )) 
+            if (b.op.RelationalOp( ) || b.op.BooleanOp( ))
                 return (Type.BOOL);
         }
         if (e instanceof Unary) {
@@ -337,8 +361,8 @@ public class CodeGen {
         }
 	if (e instanceof CallExpression) {
 	    CallExpression c = (CallExpression) e;
-	    return prog.functions.get(c.name).t; 
-	}		
+	    return prog.functions.get(c.name).t;
+	}
         throw new IllegalArgumentException("should never reach here");
     }
 
@@ -346,7 +370,7 @@ public class CodeGen {
         if (op.val.equals(Operator.INT_PLUS)) {
 			jfile.writeln("iadd");
 			return;
-        } if (op.val.equals(Operator.INT_MINUS)) { 
+        } if (op.val.equals(Operator.INT_MINUS)) {
 			jfile.writeln("isub");
 			return;
         } if (op.val.equals(Operator.INT_TIMES)) {
@@ -354,7 +378,7 @@ public class CodeGen {
 			return;
         } if (op.val.equals(Operator.INT_DIV)) {
 			jfile.writeln("idiv");
-            return; 
+            return;
 		}
         // student exercise
 	if (op.val.equals(Operator.INT_LT)) {
@@ -381,7 +405,7 @@ public class CodeGen {
 		jfile.write("\tif_icmpge ");
 		jfile.write_relop_body(branch_cnt);
 		branch_cnt++;
-		return; 
+		return;
 	} if (op.val.equals(Operator.INT_LE)) {
 		jfile.write("\tif_icmple ");
 		jfile.write_relop_body(branch_cnt++);
@@ -473,18 +497,18 @@ public class CodeGen {
 		jfile.write_relop_body(branch_cnt);
 		branch_cnt++;
 		return;
-	} if (op.val.equals(Operator.FLOAT_PLUS)) { 
+	} if (op.val.equals(Operator.FLOAT_PLUS)) {
 			jfile.writeln("fadd");
             return;
 	} if (op.val.equals(Operator.FLOAT_MINUS)) {
 			jfile.writeln("fsub");
-            return; 
+            return;
         } if (op.val.equals(Operator.FLOAT_TIMES)) {
 			jfile.writeln("fmul");
-            return; 
+            return;
         } if (op.val.equals(Operator.FLOAT_DIV)) {
 			jfile.writeln("fdiv");
-            return; 
+            return;
 		}
 	// these are some boolean operators which Jasmin has no intructions for
 	// It turns out it's simply more efficient to operate on 32bit ints!
@@ -498,7 +522,7 @@ public class CodeGen {
 
 	//at this point two ints should be on the stack which are either 1 or 0
 	if (op.val.equals(Operator.OR)) {
-		jfile.writeln("ior"); 
+		jfile.writeln("ior");
 		return;
 	} if (op.val.equals(Operator.AND)) {
 		jfile.writeln("iand");
@@ -507,11 +531,11 @@ public class CodeGen {
 	//	jfile.writeln("negate");
 		return;
 	}
-			
+
         throw new IllegalArgumentException("should never reach here");
-	
-    } 
-    
+
+    }
+
     void applyUnary (Operator op, JasminFile jfile) throws IOException {
 		// push the value onto the stack
 		// asses_out.writeln("bipush " + v)
@@ -539,13 +563,13 @@ public class CodeGen {
 			return; // do nothing
 		}
         throw new IllegalArgumentException("should never reach here");
-    } 
+    }
 
-    void M (Expression e, SymbolTable symtable, JasminFile jfile) throws IOException { 
+    void M (Expression e, SymbolTable symtable, JasminFile jfile) throws IOException {
         if (e instanceof Value) {
 			if (e instanceof IntValue || e instanceof FloatValue) {
 				jfile.writeln("ldc " + (Value)e);
-            	return; 
+            	return;
 			} if (e instanceof BoolValue) {
 				BoolValue b = (BoolValue) e;
 				jfile.writeln("ldc " + b.intValue());
@@ -555,7 +579,7 @@ public class CodeGen {
 				jfile.writeln("ldc " + (int)c.charValue());
 				return;
 			}
-	} if (e instanceof Variable) { 
+	} if (e instanceof Variable) {
 		Variable v = (Variable) e;
 		if (symtable.containsKey(v)) {
 			Type v_type = symtable.getType(v);
@@ -573,16 +597,16 @@ public class CodeGen {
 		else { // this node is trying to assign a global
 			String type;
 			Type descriptor = global_symtable.get(v.id);
-			if (descriptor.equals(Type.INT) || 
-			descriptor.equals(Type.BOOL) || 
+			if (descriptor.equals(Type.INT) ||
+			descriptor.equals(Type.BOOL) ||
 			descriptor.equals(Type.CHAR))
 				type = "I";
 			else // it's a float
 				type = "F";
-			jfile.writeln("getstatic " + jfile.get_class() + "/" 
+			jfile.writeln("getstatic " + jfile.get_class() + "/"
 			+ v + " " + type);
 		}
-		
+
     	return;
     	} if (e instanceof Binary) {
 			// I think applyBinay should handle the work here (I don't know if this is good design?)
@@ -601,17 +625,17 @@ public class CodeGen {
 	if (e instanceof CallExpression) {
 	CallExpression c = (CallExpression) e;
 	// evaluate the args and push them to the stack
-	for (Expression arg : c.args) 
+	for (Expression arg : c.args)
 		M(arg, symtable, jfile);
 
 	Function callee = prog.functions.get(c.name);
 
 	String j_params = "";
 	for (Declaration pi : callee.params)
-		j_params += pi.t.to_jasmin();	
-	
-	jfile.writeln("invokestatic " + jfile.get_class() + "/" + 
-	c.name + "(" + j_params + ")" + callee.t.to_jasmin()); 
+		j_params += pi.t.to_jasmin();
+
+	jfile.writeln("invokestatic " + jfile.get_class() + "/" +
+	c.name + "(" + j_params + ")" + callee.t.to_jasmin());
 
 	return;
     	}
@@ -647,5 +671,5 @@ public class CodeGen {
 			System.out.println(line);
 			line = r.readLine();
 		}
-	}	
+	}
 }

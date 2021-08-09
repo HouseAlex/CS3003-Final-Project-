@@ -49,6 +49,7 @@ public class Semantics {
         if (s instanceof Assignment)  return M((Assignment)s, state);
         if (s instanceof Conditional)  return M((Conditional)s, state);
         if (s instanceof Loop)  return M((Loop)s, state);
+        if (s instanceof ForLoop) return M((ForLoop)s, state); //For loop
         if (s instanceof Block)  return M((Block)s, state);
 	if (s instanceof CallStatement) return M((CallStatement)s, state);
 	if (s instanceof Return) return M((Return)s, state);
@@ -94,6 +95,11 @@ public class Semantics {
         else return state;
     }
 
+    State M (ForLoop f, State state){
+        if (M (f.test, state).boolValue( ) && !saw_ret)
+            return M(f, M (f.body, state));
+        else return state;
+    }
     State M (CallStatement c, State state) {
 	//Determine the value of c's args
 	ArrayList<Value> args = new ArrayList<Value>();

@@ -13,24 +13,24 @@ public class TypeTransformer {
 		t_funcs.add(t_func);
 	}
         return new Program(p.globals, t_funcs);
-    } 
+    }
 
     public static Function T (Function f, TypeMap tm) {
     	Block t_body = (Block) T(f.body, tm);
-    	return new Function(f.t, f.id, f.params, f.locals, t_body); 
+    	return new Function(f.t, f.id, f.params, f.locals, t_body);
     }
 
     public static Expression T (Expression e, TypeMap tm) {
-        if (e instanceof Value) 
+        if (e instanceof Value)
             return e;
 	if (e instanceof ArrayRef) {
 	    ArrayRef a = (ArrayRef) e;
 	    return new ArrayRef(a.id, T(a.index, tm));
-	}	
-        if (e instanceof VariableRef) 
+	}
+        if (e instanceof VariableRef)
             return e;
         if (e instanceof Binary) {
-            Binary b = (Binary)e; 
+            Binary b = (Binary)e;
             Type typ1 = StaticTypeCheck.typeOf(b.term1, tm);
             Type typ2 = StaticTypeCheck.typeOf(b.term2, tm);
             Expression t1 = T (b.term1, tm);
@@ -39,13 +39,13 @@ public class TypeTransformer {
 		if (typ2 == Type.FLOAT)
 			t1 = new Unary (new Operator(Operator.I2F), t1);
 		return new Binary(b.op.intMap(b.op.val), t1,t2);
-            } else if (typ1 == Type.FLOAT) { 
-	        if (typ2 == Type.INT)	
+            } else if (typ1 == Type.FLOAT) {
+	        if (typ2 == Type.INT)
 			t2 = new Unary (new Operator(Operator.I2F), t2);
                 return new Binary(b.op.floatMap(b.op.val), t1,t2);
-            } else if (typ1 == Type.CHAR) 
+            } else if (typ1 == Type.CHAR)
                 return new Binary(b.op.charMap(b.op.val), t1,t2);
-            else if (typ1 == Type.BOOL) 
+            else if (typ1 == Type.BOOL)
                 return new Binary(b.op.boolMap(b.op.val), t1,t2);
             throw new IllegalArgumentException("should never reach here");
         }
@@ -68,23 +68,23 @@ public class TypeTransformer {
 		CallExpression c = (CallExpression) e;
 		//Looking for typemap associated with call's name
 		Object o = tm.get(new Variable(c.name));
-		FunctionMap fm = (FunctionMap) o; 
-		FunctionTypeMap called_params = (FunctionTypeMap) fm.getParams();	
+		FunctionMap fm = (FunctionMap) o;
+		FunctionTypeMap called_params = (FunctionTypeMap) fm.getParams();
 
-		ArrayList<Type> param_types = called_params.typeArray(); 
+		ArrayList<Type> param_types = called_params.typeArray();
 
 		for (int i=0; i<c.args.size(); i++) {
 			Type current_arg_type = StaticTypeCheck.typeOf(c.args.get(i), tm);
 			if (param_types.get(i).equals(Type.FLOAT)) {
 				if (current_arg_type.equals(Type.INT))
-					c.args.set(i, new Unary(new Operator(Operator.I2F), T(c.args.get(i), tm)));	
+					c.args.set(i, new Unary(new Operator(Operator.I2F), T(c.args.get(i), tm)));
 				else
 					c.args.set(i, T(c.args.get(i), tm));
 			}
 			else {
 				c.args.set(i, T(c.args.get(i), tm));
 			}
-		} 
+		}
 		return new CallExpression(c.name, c.args);
 
 	}
@@ -120,7 +120,7 @@ public class TypeTransformer {
             StaticTypeCheck.check( ttype == srctype,
                       "bug in assignment to " + target);
             return new Assignment(a.target, src);
-        } 
+        }
         if (s instanceof Conditional) {
             Conditional c = (Conditional)s;
             Expression test = T (c.test, tm);
@@ -134,6 +134,12 @@ public class TypeTransformer {
             Statement body = T (l.body, tm);
             return new Loop(test, body);
         }
+        if (s instanceof ForLoop) {
+            ForLoop f = (ForLoop)s;
+            Expression test = T (f.test, tm);
+            Statement body - T (f.body, tm);
+            return new ForLoop(test, body);
+        }
         if (s instanceof Block) {
             Block b = (Block)s;
             Block out = new Block();
@@ -142,29 +148,29 @@ public class TypeTransformer {
             return out;
         }
 	if (s instanceof Return) {
-		Return r = (Return) s;	
+		Return r = (Return) s;
 		return new Return(r.target, T(r.result, tm));
 	}
 	if (s instanceof CallStatement) {
 		CallStatement c = (CallStatement) s;
 		//Looking for typemap associated with call's name
 		Object o = tm.get(new Variable(c.name));
-		FunctionMap fm = (FunctionMap) o; 
-		FunctionTypeMap called_params = (FunctionTypeMap) fm.getParams();	
-		ArrayList<Type> param_types = called_params.typeArray(); 
+		FunctionMap fm = (FunctionMap) o;
+		FunctionTypeMap called_params = (FunctionTypeMap) fm.getParams();
+		ArrayList<Type> param_types = called_params.typeArray();
 
 		for (int i=0; i<c.args.size(); i++) {
 			Type current_arg_type = StaticTypeCheck.typeOf(c.args.get(i), tm);
 			if (param_types.get(i).equals(Type.FLOAT)) {
 				if (current_arg_type.equals(Type.INT))
-					c.args.set(i, new Unary(new Operator(Operator.I2F), T(c.args.get(i), tm)));	
+					c.args.set(i, new Unary(new Operator(Operator.I2F), T(c.args.get(i), tm)));
 				else
 					c.args.set(i, T(c.args.get(i), tm));
 			}
 			else {
 				c.args.set(i, T(c.args.get(i), tm));
 			}
-		} 
+		}
 		return new CallStatement(c.name, c.args);
 	}
 	if (s instanceof Print) {
@@ -173,7 +179,7 @@ public class TypeTransformer {
 	}
         throw new IllegalArgumentException("should never reach here");
     }
-    
+
 
     public static void main(String args[]) {
         Parser parser  = new Parser(new Lexer(args[0]));
@@ -190,5 +196,3 @@ public class TypeTransformer {
     } //main
 
     } // class TypeTransformer
-
-    
