@@ -135,10 +135,15 @@ public class Lexer {
 				   Token.gteqTok);
 
 	    case '!':
-		return chkOpt('=', Token.notTok,
+            ch = nextChar();
+            if (ch == '=')
+		        return chkOpt('=', Token.notTok,
 				   Token.noteqTok);
-
-            default:  error("Illegal character " + ch); 
+            if (ch == '|') { // Added != Case
+                return chkOpt('|', Token.notTok,
+                    Token.norTok);
+            }
+        default:  error("Illegal character " + ch); 
             } // switch
         } while (true);
     } // next
