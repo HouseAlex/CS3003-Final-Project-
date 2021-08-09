@@ -468,7 +468,7 @@ class ArrayRef extends VariableRef {
 // TODO
 abstract class Value extends Expression {
     // Value = IntValue | BoolValue |
-    //         CharValue | FloatValue
+    //         CharValue | FloatValue | LongValue
     protected Type type;
     protected boolean undef = true;
 
@@ -598,14 +598,14 @@ class FloatValue extends Value {
 }
 // TODO
 class longValue extends Value {
-    private float value = 0;
+    private long value = 0;
 
     LongValue () { type = Type.LONG; }
 
     LongValue (long v ) { this(); value = v; undef = false; }
 
     long longValue () {
-        assert !undef : "reference to undefined float value";
+        assert !undef : "reference to undefined long value";
         return value;
     }
 
@@ -685,6 +685,7 @@ class Operator {
     final static String INT = "int";
     final static String FLOAT = "float";
     final static String CHAR = "char";
+    final static String LONG = "long";
     // Typed Operators
     // RelationalOp = < | <= | == | != | >= | >
     final static String INT_LT = "INT<";
@@ -734,7 +735,9 @@ class Operator {
     final static String F2I = "F2I";
     final static String C2I = "C2I";
     final static String I2C = "I2C";
-    // ADDED FLOAT OPERATIONS
+    final static String L2I = "L2I";
+    final static String I2L = "I2L";
+    // ADDED LONG OPERATIONS
     final static String LONG_LT = "LONG<";
     final static String LONG_LE = "LONG<=";
     final static String LONG_EQ = "LONG==";
@@ -772,7 +775,7 @@ class Operator {
     }
     boolean NotOp ( ) { return val.equals(NOT) ; }
     boolean NegateOp ( ) { return (val.equals(NEG) || val.equals(INT_NEG) || 
-				   val.equals(FLOAT_NEG)); }
+				   val.equals(FLOAT_NEG) || val.equals(LONG_NEG)); }
     boolean intOp ( ) { return val.equals(INT); }
     boolean floatOp ( ) { return val.equals(FLOAT); }
     boolean charOp ( ) { return val.equals(CHAR); }
@@ -783,7 +786,8 @@ class Operator {
         {TIMES, INT_TIMES}, {DIV, INT_DIV},
         {EQ, INT_EQ}, {NE, INT_NE}, {LT, INT_LT},
         {LE, INT_LE}, {GT, INT_GT}, {GE, INT_GE},
-        {NEG, INT_NEG}, {FLOAT, I2F}, {CHAR, I2C}
+        {NEG, INT_NEG}, {FLOAT, I2F}, {CHAR, I2C},
+        {LONG, I2L}
     };
 
     final static String floatMap[ ] [ ] = {
@@ -811,7 +815,7 @@ class Operator {
         {TIMES, LONG_TIMES}, {DIV, LONG_DIV},
         {EQ, LONG_EQ}, {NE, LONG_NE}, {LT, LONG_LT},
         {LE, LONG_LE}, {GT, LONG_GT}, {GE, LONG_GE},
-        {NEG, LONG_NEG}
+        {NEG, LONG_NEG}, {INT, L2I}
     };
 
     final static private Operator map (String[][] tmap, String op) {

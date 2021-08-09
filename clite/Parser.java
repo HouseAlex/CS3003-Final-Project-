@@ -455,9 +455,9 @@ public class Parser {
 	} else if (token.type().equals(TokenType.FloatLiteral)) {
 		float f_val = Float.parseFloat(match(token.type()));
 		val = new FloatValue(f_val);
-  }else if (token.type().equals(TokenType.LongLiteral)) {
-    long l_val = Long.parseLong(match(token.type()));
-    val = new LongValue(l_val); //new long is bool literal
+	} else if (token.type().equals(TokenType.LongLiteral)) {
+		long l_val = Long.parseLong(match(token.type()));
+		val = new LongValue(l_val); //new long is bool literal
 	} else {
 		char c_val = match(token.type()).charAt(0);
 		val = new CharValue(c_val);
@@ -506,7 +506,8 @@ public class Parser {
         return token.type().equals(TokenType.IntLiteral) ||
             isBooleanLiteral() ||
             token.type().equals(TokenType.FloatLiteral) ||
-            token.type().equals(TokenType.CharLiteral);
+            token.type().equals(TokenType.CharLiteral) ||
+			token.type().equals(TokenType.LongLiteral);
     }
 
     private boolean isBooleanLiteral( ) {

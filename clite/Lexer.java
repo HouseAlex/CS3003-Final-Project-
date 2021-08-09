@@ -62,6 +62,8 @@ public class Lexer {
                 String number = concat(digits);
                 if (ch != '.')  // int Literal
                     return Token.mkIntLiteral(number);
+                if (ch == 'L') // Long Literal
+                    return Token.mkLongLiteral(number);
                 number += concat(digits);
                 return Token.mkFloatLiteral(number);
             } else switch (ch) {
