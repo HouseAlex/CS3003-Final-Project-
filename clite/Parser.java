@@ -329,6 +329,17 @@ public class Parser {
 	return e;
     }
 
+    private Expression neither () {
+        // neither --> neither { !| neither}
+  Expression e = neither();
+  while (token.type().equals(TokenType.Nor)){
+    Operator op = new Operator(match(TokenType.Nor));
+    Expression expr2 = neither();
+    e = new Binary(op, e, expr2);
+  }
+        return e;
+    }
+
     private Expression conjunction () {
         // Conjunction --> Equality { && Equality }
 	Expression e = equality();

@@ -204,6 +204,8 @@ public class Semantics {
 			return new BoolValue(v1.boolValue( ) && v2.boolValue( ));
 		if (op.val.equals(Operator.OR))
 			return new BoolValue(v1.boolValue( ) || v2.boolValue( ));
+    if (op.val.equals(Operator.NOR))
+      return new BoolValue(!v1.boolValue( ) && !v2.boolValue( ));
         throw new IllegalArgumentException("should never reach here");
 
     }
