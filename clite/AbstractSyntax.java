@@ -8,23 +8,23 @@ import java.util.*;
 class Program {
     // Program = Declarations globals ; Block functions
 
-    private static final String TAB = "  ";	
+    private static final String TAB = "  ";
 
     Declarations globals;
     Functions functions;
 
-    private Function currentFunction;			// A reference to the current function we are processing in display() 
-    
+    private Function currentFunction;			// A reference to the current function we are processing in display()
+
     Program (Declarations g, Functions f) {
         globals = g;
         functions = f;
     }
-    
+
     void display() {
     	currentFunction = null;
 		String prefix = TAB + "Globals:\n";
 		String declars;
-		if (globals.size() < 1) 
+		if (globals.size() < 1)
 			declars = TAB + TAB + "None\n";
 		else {
 			declars = TAB + TAB + "{";
@@ -34,7 +34,7 @@ class Program {
 			declars = declars.substring(0,declars.length()-2) + "}\n";
 		}
 		System.out.print(prefix + declars + inner_display( TAB, TAB, functions));
-    } 
+    }
 
     String inner_display(String spc, String spcing, Object node) {
 		if (node instanceof Unary) {
@@ -42,8 +42,8 @@ class Program {
 			String prefix = spcing + "Unary:\n";
 			String branch1 = inner_display(spc, spc + spcing, u_node.op);
 			String branch2 = inner_display(spc, spc + spcing, u_node.term);
-			return prefix + branch1 + branch2; 
-			
+			return prefix + branch1 + branch2;
+
 		} if (node instanceof Binary) {
 			Binary b_node = (Binary) node;
 			String prefix = spcing + "Binary:\n";
@@ -71,10 +71,10 @@ class Program {
 					if (myTarget.equals(d.v.id)) {found = true; break;}
 				}
 			}
-			
+
 			if (!found) {System.err.println("*** Undeclared variable: " + myTarget);}
 			String branch2 = inner_display(spc, spc + spcing, a_node.source);
-			return prefix + branch1 + branch2;	
+			return prefix + branch1 + branch2;
 		} if (node instanceof Block) {
 			Block blk_node = (Block) node;
 			String prefix = spcing + "Block:\n";
@@ -94,10 +94,17 @@ class Program {
 			Loop l_node = (Loop) node;
 			String prefix = spcing + "Loop:\n";
 			String test = inner_display(spc, spc + spcing, l_node.test);
-			String body = inner_display(spc, spc + spcing, l_node.body); 	
+			String body = inner_display(spc, spc + spcing, l_node.body);
 			return prefix + test + body;
 		} if (node instanceof Functions) {
 			Functions f_node = (Functions) node;
+      if (node instanceof ForLoop) {
+            ForLoop l_node = (ForLoop) node;
+            String prefix = spcing + "For Loop:\n";
+            String test = inner_display(spc, spc + spcing, l_node.test);
+            String body = inner_display(spc, spc + spcing, l_node.body);
+            return prefix + test + body;
+          }
 			String prefix = spcing + "Functions:\n";
 			String f_string = "";
 			if (f_node.size() < 1)
@@ -109,14 +116,14 @@ class Program {
 		} if (node instanceof Declarations) {
 			Declarations d_node = (Declarations) node;
 			String declars = spcing + spc + "{";
-			if (d_node.size() < 1) 
+			if (d_node.size() < 1)
 				return spcing + spc + "None\n";
 			for (int i=0; i<d_node.size();i++) {
 				declars += d_node.get(i) + ", ";
 			}
 			declars = declars.substring(0,declars.length()-2) + "}\n";
 			return declars;
-		} if (node instanceof Function) { 
+		} if (node instanceof Function) {
 			Function f_node = (Function) node;
 			currentFunction = f_node;
 			//String prefix = spcing + "Function:\n";
@@ -134,14 +141,14 @@ class Program {
 		} if (node instanceof CallStatement) {
 			CallStatement c_node = (CallStatement) node;
 			String prefix = spcing + "Call:\n";
-			String name = spc + spcing + "Name: " + c_node.name + "\n"; 
-			String args = inner_display(spc, spc + spcing, c_node.args);	
+			String name = spc + spcing + "Name: " + c_node.name + "\n";
+			String args = inner_display(spc, spc + spcing, c_node.args);
 			return prefix + name + args;
-		} if (node instanceof CallExpression) { 
+		} if (node instanceof CallExpression) {
 			CallExpression c_node = (CallExpression) node;
 			String prefix = spcing + "Call:\n";
-			String name = spc + spcing + "Name: " + c_node.name + "\n"; 
-			String args = inner_display(spc, spc + spcing, c_node.args);	
+			String name = spc + spcing + "Name: " + c_node.name + "\n";
+			String args = inner_display(spc, spc + spcing, c_node.args);
 			return prefix + name + args;
 		} if (node instanceof Expressions) {
 			Expressions e_node = (Expressions) node;
@@ -163,12 +170,12 @@ class Program {
 			return prefix + expr;
 		} else {
 			String prefix = spcing + (node.getClass() + "").substring(6) + ": ";
-			String value = node + "\n"; 
-			return prefix + value; 
+			String value = node + "\n";
+			return prefix + value;
 		}
     }
-    
-    
+
+
     // DWN
     public void applyTypeSystemRules() {
     	// All variables must be declared
@@ -176,13 +183,13 @@ class Program {
     		for (Statement s : f.body.members) {
     			if (s instanceof Assignment) {
     				Assignment a = (Assignment) s;
-    				
+
     			}
     		}
     	}
     }
 
-    
+
 }
 
 class Functions extends ArrayList<Function> {
@@ -190,8 +197,8 @@ class Functions extends ArrayList<Function> {
 	// (a list of functions f1, f2, ..., fn)
 
 	public Function get(String name) {
-		for (Function fi : this) 
-			if (fi.id.equals(name)) 
+		for (Function fi : this)
+			if (fi.id.equals(name))
 				return fi;
 		throw new IllegalArgumentException("no func '" + name + "' has been defined");
 	}
@@ -241,11 +248,11 @@ class ArrayDecl extends Declaration {
 // ArrayDecl = Variable v; Type t; Integer size
 
 	IntValue size;
-	
+
 	ArrayDecl (Variable var, Type type, IntValue alloc) {
 	   super.v = var; super.t = type; size = alloc;
-	}	
-	
+	}
+
 	public String toString( ) {
 	   return "<" + v + ", " + t + ", size: " + size + ">";
 	}
@@ -260,7 +267,7 @@ class Type {
     final static Type VOID = new Type("void");
     final static Type LONG = new Type("long");
     // final static Type UNDEFINED = new Type("undef");
-    
+
     private String id;
 
     private Type (String t) { id = t; }
@@ -333,11 +340,11 @@ class Conditional extends Statement {
     Expression test;
     Statement thenbranch, elsebranch;
     // elsebranch == null means "if... then"
-    
+
     Conditional (Expression t, Statement tp) {
         test = t; thenbranch = tp; elsebranch = new Skip( );
     }
-    
+
     Conditional (Expression t, Statement tp, Statement ep) {
         test = t; thenbranch = tp; elsebranch = ep;
     }
@@ -354,9 +361,9 @@ class Conditional extends Statement {
 	public void display() {
 		System.out.println("Conditional: ");
 		System.out.print("\t"); test.display();
-		System.out.println("\t"); thenbranch.display();	
+		System.out.println("\t"); thenbranch.display();
 		System.out.println("\t"); elsebranch.display();
-   	} 
+   	}
 	*/
 }
 
@@ -371,8 +378,8 @@ class Loop extends Statement {
 
 	boolean hasReturn() {
 		return body.hasReturn();
-	}	
-    
+	}
+
 }
 
 class CallStatement extends Statement {
@@ -384,6 +391,20 @@ class CallStatement extends Statement {
 	}
 }
 
+class ForLoop extends Statement {
+// ForLoop = Expression test; Statement body
+    Expression test;
+    Statement body;
+
+    ForLoop (Expression t, Statement b) {
+        test = t; body = b;
+    }
+
+    boolean hasReturn() {
+        return body.hasReturn();
+    }
+
+}
 class Return extends Statement {
 	VariableRef target;
 	Expression result;
@@ -396,7 +417,7 @@ class Return extends Statement {
 		return true;
 	}
 }
-	
+
 class Expressions extends ArrayList<Expression> {
 	// Expressions = Expression*
 }
@@ -422,7 +443,7 @@ class Variable extends VariableRef {
     Variable (String s) { super.id = s; }
 
     public String toString( ) { return id; }
-    
+
     public boolean equals (Object obj) {
     	try {
         	String s = ((Variable) obj).id;
@@ -432,13 +453,13 @@ class Variable extends VariableRef {
 		return false;
 	}
     }
-    
+
     public int hashCode ( ) { return id.hashCode( ); }
 }
 
 class ArrayRef extends VariableRef {
     // ArrayRef = String id; Expression index
-	
+
     Expression index;
 
     ArrayRef (String s, Expression e) {
@@ -452,16 +473,16 @@ class ArrayRef extends VariableRef {
 	    ArrayRef a = (ArrayRef) obj;
 	    String aid = a.id;
 	    Expression aindex = a.index;
-	    return id.equals(aid) && index.equals(aindex); 
+	    return id.equals(aid) && index.equals(aindex);
         }
 	catch (ClassCastException e) {
-		return false; 
+		return false;
 	}
     }
 
     public int hashCode( ) {
     	IntValue ival = (IntValue) index;
-    	return id.hashCode() + ival.intValue(); 
+    	return id.hashCode() + ival.intValue();
     }
     // I think the reason the ArrayRefs are not being matched. Is because I have not implemented the function hashCode, for ArrayRef
 }
@@ -476,17 +497,17 @@ abstract class Value extends Expression {
         assert false : "should never reach here";
         return 0;
     }
-    
+
     boolean boolValue ( ) {
         assert false : "should never reach here";
         return false;
     }
-    
+
     char charValue ( ) {
         assert false : "should never reach here";
         return ' ';
     }
-    
+
     float floatValue ( ) {
         assert false : "should never reach here";
         return 0.0f;
@@ -623,7 +644,7 @@ class Binary extends Expression {
     Binary (Operator o, Expression l, Expression r) {
         op = o; term1 = l; term2 = r;
     } // binary
-	
+
 }
 
 class Unary extends Expression {
@@ -650,10 +671,10 @@ class CallExpression extends Expression {
 	public String toString() {
 		String prefix = name;
 		String acc = "";
-		if (args.size() < 1) 
+		if (args.size() < 1)
 			return prefix + "()";
 		for(int i=0; i<args.size();i++) {
-			acc += args.get(i) +", ";	
+			acc += args.get(i) +", ";
 		}
 		return prefix + "(" + acc.substring(0, acc.length()-2) + ")";
 	}
@@ -678,7 +699,7 @@ class Operator {
     final static String MINUS = "-";
     final static String TIMES = "*";
     final static String DIV = "/";
-    // UnaryOp = !    
+    // UnaryOp = !
     final static String NOT = "!";
     final static String NEG = "-NEG"; //This has been changed from "-" to "-NEG" to avoid ambiguity with MINUS
     // CastOp = int | float | char
@@ -699,7 +720,7 @@ class Operator {
     final static String INT_MINUS = "INT-";
     final static String INT_TIMES = "INT*";
     final static String INT_DIV = "INT/";
-    // UnaryOp = !    
+    // UnaryOp = !
     final static String INT_NEG = "INT-NEG";
     // RelationalOp = < | <= | == | != | >= | >
     final static String FLOAT_LT = "FLOAT<";
@@ -713,7 +734,7 @@ class Operator {
     final static String FLOAT_MINUS = "FLOAT-";
     final static String FLOAT_TIMES = "FLOAT*";
     final static String FLOAT_DIV = "FLOAT/";
-    // UnaryOp = !    
+    // UnaryOp = !
     final static String FLOAT_NEG = "FLOAT-NEG";
     // RelationalOp = < | <= | == | != | >= | >
     final static String CHAR_LT = "CHAR<";
@@ -750,14 +771,14 @@ class Operator {
     final static String LONG_TIMES = "LONG*";
     final static String LONG_DIV = "LONG/";
     final static String LONG_NEG = "LONG-NEG";
-    
+
     String val;
-    
+
     Operator (String s) { val = s; }
 
     public String toString( ) { return val; }
     public boolean equals(Object obj) { return val.equals(obj); }
-    
+
     boolean BooleanOp ( ) { return val.equals(AND) || val.equals(OR) || val.equals(NOR); }
     boolean RelationalOp ( ) {
         return val.equals(LT) || val.equals(LE) || val.equals(EQ)
@@ -774,7 +795,7 @@ class Operator {
             || val.equals(LONG_TIMES) || val.equals(LONG_DIV);
     }
     boolean NotOp ( ) { return val.equals(NOT) ; }
-    boolean NegateOp ( ) { return (val.equals(NEG) || val.equals(INT_NEG) || 
+    boolean NegateOp ( ) { return (val.equals(NEG) || val.equals(INT_NEG) ||
 				   val.equals(FLOAT_NEG) || val.equals(LONG_NEG)); }
     boolean intOp ( ) { return val.equals(INT); }
     boolean floatOp ( ) { return val.equals(FLOAT); }
@@ -840,9 +861,9 @@ class Operator {
 
     final static public Operator boolMap (String op) {
         return map (boolMap, op);
-    }    
+    }
     // Mapped Long
     final static public Operator longMap (String op) {
         return map (longMap, op);
-    }   
+    }
 }

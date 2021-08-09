@@ -5,7 +5,7 @@ package clite;
 
 import java.util.*;
 
-// Static type checking for Clite is defined by the functions 
+// Static type checking for Clite is defined by the functions
 // V and the auxiliary functions typing and typeOf.  These
 // functions use the classes in the Abstract Syntax of Clite.
 
@@ -81,7 +81,7 @@ public class StaticTypeCheck {
 		check( ! (dj.t.equals(Type.VOID)),
 		       "global with type void: " + dj.v);
             }
-    } 
+    }
 
     public static void V (Declarations G, Functions F) {
     	for (int i=0; i<G.size(); i++)
@@ -101,17 +101,17 @@ public class StaticTypeCheck {
                 check( ! (Fi.id.equals(Fj.id)),
                        "duplicate function name: " + Fi);
             }
-    } 
+    }
 
     public static void V (Program p) {
-	// Since the TypeMap is an extension of HashMap, strictly obeying the formalized type rules is erroneous. 
+	// Since the TypeMap is an extension of HashMap, strictly obeying the formalized type rules is erroneous.
 	// Concrete syntax guarentees that the final function declared must be main, so that type checking has been omitted.
 	V (p.globals);
 	V (p.functions);
         V (p.globals, p.functions);
-	for(Function fi : p.functions) 
+	for(Function fi : p.functions)
 		V(fi, typing(p.globals, p.functions, fi));
-    } 
+    }
 
     public static void V (Function f, TypeMap tm) {
 	Declarations params_and_locals = new Declarations();
@@ -132,15 +132,15 @@ public class StaticTypeCheck {
 				Return r = (Return) s;
 				check( typeOf(r.result, tm).equals(f.t),
 					"retun statement in function " + f.id + " with incorrect type " + typeOf(r.result, tm));
-				contains_ret = true;	
+				contains_ret = true;
 			}
 			*/
 		}
 		if (!contains_ret)
-			check( false, "non-void function " + f.id + " does not contain return statement");	
+			check( false, "non-void function " + f.id + " does not contain return statement");
 	} else if (f.t.equals(Type.VOID)) {
 		for (Statement s : f.body.members) {
-			check( ! s.getClass().equals(Return.class), 
+			check( ! s.getClass().equals(Return.class),
 				"return statement in void function " + f.id);
 		}
 	} else { // The function being checked in main
@@ -171,7 +171,7 @@ public class StaticTypeCheck {
                 if (typeOf(b.term1,tm)== Type.FLOAT || typeOf(b.term2,tm)== Type.FLOAT)
                     return (Type.FLOAT);
                 else return (Type.INT);
-            if (b.op.RelationalOp( ) || b.op.BooleanOp( )) 
+            if (b.op.RelationalOp( ) || b.op.BooleanOp( ))
                 return (Type.BOOL);
         }
         if (e instanceof Unary) {
@@ -187,10 +187,10 @@ public class StaticTypeCheck {
 	    return fm.getType();
 	}
         throw new IllegalArgumentException("should never reach here");
-    } 
+    }
 
     public static void V (Expression e, TypeMap tm) {
-        if (e instanceof Value) 
+        if (e instanceof Value)
             return;
 	if (e instanceof ArrayRef) {
 	    ArrayRef a = (ArrayRef)e;
@@ -201,7 +201,7 @@ public class StaticTypeCheck {
 		    , " non-int expression as index for " + a);
 	    return;
 	}
-        if (e instanceof Variable) { 
+        if (e instanceof Variable) {
             Variable v = (Variable)e;
             check( tm.containsKey(v)
                    , "undeclared variable: " + v);
@@ -214,17 +214,17 @@ public class StaticTypeCheck {
             V (b.term1, tm);
             V (b.term2, tm);
             if (b.op.ArithmeticOp( )) {
-		if (typ1 == Type.FLOAT && typ2 == Type.INT) 
+		if (typ1 == Type.FLOAT && typ2 == Type.INT)
 			check( true, "should never reach here");
-		else if (typ1 == Type.INT && typ2 == Type.FLOAT)		
+		else if (typ1 == Type.INT && typ2 == Type.FLOAT)
 			check( true, "should never reach here");
 		else
                 	check( typ1 == typ2 &&
                        		(typ1 == Type.INT || typ1 == Type.FLOAT)
                        		, "type error for " + b.op);
-            } else if (b.op.RelationalOp( )) 
+            } else if (b.op.RelationalOp( ))
                 check( typ1 == typ2 , "type error for " + b.op);
-            else if (b.op.BooleanOp( )) 
+            else if (b.op.BooleanOp( ))
                 check( typ1 == Type.BOOL && typ2 == Type.BOOL,
                        b.op + ": non-bool operand");
 	    else
@@ -232,10 +232,10 @@ public class StaticTypeCheck {
             return;
         }
         // student exercise Unary
-	
+
 	if (e instanceof Unary) {
 	    Unary u = (Unary) e;
-	    Type typ = typeOf(u.term, tm); 
+	    Type typ = typeOf(u.term, tm);
 	    V (u.term, tm);
 	    if (u.op.NotOp( ))
 		check( typ == Type.BOOL, u.op + ": non-bool operand");
@@ -246,37 +246,37 @@ public class StaticTypeCheck {
 	    else
 		throw new IllegalArgumentException("should never reach here");
 	    return;
-	} 
+	}
 	if (e instanceof CallExpression) {
 		CallExpression c = (CallExpression) e;
 		//Looking for typemap associated with call's name
 		Object o = tm.get(new Variable(c.name));
 		check ( o != null, "Call " + c + " references non-existent function");
 
-		FunctionMap fm = (FunctionMap) o; 
+		FunctionMap fm = (FunctionMap) o;
 		check( ! fm.getType().equals(Type.VOID), "call expression " + c + " to void function");
 		FunctionTypeMap called_params = (FunctionTypeMap) fm.getParams();
 
-		ArrayList<Type> param_types = called_params.typeArray(); 
+		ArrayList<Type> param_types = called_params.typeArray();
 
 		if (param_types.size() < c.args.size())
 			check(param_types.size() == c.args.size(), "too many arguments supplied to function " + c.name);
 		else if (param_types.size() > c.args.size())
 			check(param_types.size() == c.args.size(), "too little arguments supplied to function " + c.name);
-		
+
 		// at this point it is guaranteed that the correct number of arguments have been supplied
 		for (int i=0; i<c.args.size(); i++) {
 			Type current_arg_type = typeOf(c.args.get(i), tm);
 			if (param_types.get(i).equals(Type.FLOAT)) {
 				check((current_arg_type == Type.FLOAT) ||
-					(current_arg_type  == Type.INT), 
-				"argument passed to function " + c.name + "not coercible to type float");	
+					(current_arg_type  == Type.INT),
+				"argument passed to function " + c.name + "not coercible to type float");
 			}
 			else {
-				check(current_arg_type.equals(param_types.get(i)), 
+				check(current_arg_type.equals(param_types.get(i)),
 				"argument passed to function " + c.name + "not coercible to type " + param_types.get(i));
 			}
-		} 
+		}
 		return;
 	}
         throw new IllegalArgumentException("should never reach here");
@@ -292,7 +292,7 @@ public class StaticTypeCheck {
 	    if (a.target instanceof ArrayRef) {
 	    	target = new Variable(a.target.id);
 	    }
-	    else { 
+	    else {
 	        target = (Variable) a.target;
 	    }
 	    check( tm.containsKey(target)
@@ -312,7 +312,7 @@ public class StaticTypeCheck {
                            , "mixed mode assignment to " + target);
             }
             return;
-        } 
+        }
 	// student exercise
 	if (s instanceof Conditional) {
 	    Conditional c = (Conditional) s;
@@ -328,9 +328,18 @@ public class StaticTypeCheck {
 	    V(l.test, tm);
 	    V(l.body, tm);
 	    Type ttype = typeOf(l.test, tm);
-	    check(ttype == Type.BOOL, "test expression not of type bool: " + l.test);	
+	    check(ttype == Type.BOOL, "test expression not of type bool: " + l.test);
 	    return;
 	}
+  //TO DO: For loop
+    if (s instance of ForLoop) {
+        ForLoop f = (ForLoop) s;
+        V(f.test, tm);
+        V(f.body, tm);
+        Type ttype = typeOf(f.test, tm);
+        check(ttype == Type.BOOL,"test expression not of type bool: " + f.test);
+        return;
+    }
 	if (s instanceof Block) {
 	    Block b = (Block) s;
 	    for (int i=0; i<b.members.size(); i++)
@@ -342,35 +351,35 @@ public class StaticTypeCheck {
 		//Looking for typemap associated with call's name
 		Object o = tm.get(new Variable(c.name));
 		check ( o != null, "Call " + c + " references non-existent function");
-		
-		FunctionMap fm = (FunctionMap) o; 
+
+		FunctionMap fm = (FunctionMap) o;
 		check( fm.getType().equals(Type.VOID), "call statement " + c + "to non-void function");
 
 		FunctionTypeMap called_params = (FunctionTypeMap) fm.getParams();
 
-		ArrayList<Type> param_types = called_params.typeArray(); 
+		ArrayList<Type> param_types = called_params.typeArray();
 
 		if (param_types.size() < c.args.size())
 			check(param_types.size() == c.args.size(), "too many arguments supplied to function " + c.name);
 		else if (param_types.size() > c.args.size())
 			check(param_types.size() == c.args.size(), "too little arguments supplied to function " + c.name);
-		
+
 		// at this point it is guaranteed that the correct number of arguments have been supplied
 		for (int i=0; i<c.args.size(); i++) {
 			Type current_arg_type = typeOf(c.args.get(i), tm);
 			if (param_types.get(i).equals(Type.FLOAT)) {
 				check((current_arg_type == Type.FLOAT) ||
-					(current_arg_type  == Type.INT), 
-				"argument passed to function " + c.name + "not coercible to type float");	
+					(current_arg_type  == Type.INT),
+				"argument passed to function " + c.name + "not coercible to type float");
 			}
 			else {
-				check(current_arg_type.equals(param_types.get(i)), 
+				check(current_arg_type.equals(param_types.get(i)),
 				"argument passed to function " + c.name + "not coercible to type " + param_types.get(i));
 			}
-		} 
+		}
 		return;
-	} 
-	if (s instanceof Return) 
+	}
+	if (s instanceof Return)
 		return;
 	if (s instanceof Print) {
 	    Print p = (Print) s;
@@ -392,4 +401,3 @@ public class StaticTypeCheck {
     } //main
 
 } // class StaticTypeCheck
-
