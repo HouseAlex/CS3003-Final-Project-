@@ -219,6 +219,8 @@ public class Parser {
 	} else if (token.type().equals(TokenType.Print)) {
 		s = print();
 		match(TokenType.Semicolon);
+	} else if (token.type().equals(TokenType.For)) {
+		s = ForStatement(); // Added for statement
 	} else {
 		match(TokenType.Semicolon);
 	}
@@ -286,6 +288,20 @@ public class Parser {
 	Statement st = statement();
         return new Loop(test, st);  // student exercise
     }
+
+	private Loop forStatement () {
+		// forStatement --> for ( Expression; expression; expression; ) Statement 1 or 3 expressions????
+		// TODO
+	match(token.type());
+	match(TokenType.LeftParen);
+	Expression begin = expression();
+	Expression condition = expression();
+	Expression step = expression();
+	match(TokenType.RightParen);
+	Statement st = statement();
+	return new Loop(st, begin, condition, step)
+
+	}
 
     private Return returnStatement() {
     	match(TokenType.Return);

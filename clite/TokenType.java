@@ -3,7 +3,7 @@ package clite;
 
 
 public enum TokenType {
-     Bool, Char, Else, False, Float, Nor, Long,
+     Bool, Char, Else, False, Float, Nor, Long, For,
      If, Int, Main, True, While, Void, Return, Print,
      Eof, LeftBrace, RightBrace, LeftBracket, RightBracket,
      LeftParen, RightParen, Semicolon, Comma, Assign,

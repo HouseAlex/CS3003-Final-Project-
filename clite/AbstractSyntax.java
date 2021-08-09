@@ -250,7 +250,7 @@ class ArrayDecl extends Declaration {
 	   return "<" + v + ", " + t + ", size: " + size + ">";
 	}
 }
-
+// TODO
 class Type {
     // Type = int | bool | char | float | void
     final static Type INT = new Type("int");
@@ -258,6 +258,7 @@ class Type {
     final static Type CHAR = new Type("char");
     final static Type FLOAT = new Type("float");
     final static Type VOID = new Type("void");
+    final static Type LONG = new Type("long");
     // final static Type UNDEFINED = new Type("undef");
     
     private String id;
@@ -274,6 +275,8 @@ class Type {
 		return "F";
 	else if (this.equals(Type.VOID))
 		return "V";
+    else if (this.equals(Type.LONG))
+        return "L";
 	else
 		throw new IllegalArgumentException("No such type");
     }
@@ -462,7 +465,7 @@ class ArrayRef extends VariableRef {
     }
     // I think the reason the ArrayRefs are not being matched. Is because I have not implemented the function hashCode, for ArrayRef
 }
-	
+// TODO
 abstract class Value extends Expression {
     // Value = IntValue | BoolValue |
     //         CharValue | FloatValue
@@ -489,6 +492,11 @@ abstract class Value extends Expression {
         return 0.0f;
     }
 
+    long longValue () {
+        assert false : "should never reach here";
+        return 0L
+    }
+
     boolean isUndef( ) { return undef; }
 
     Type type ( ) { return type; }
@@ -498,6 +506,7 @@ abstract class Value extends Expression {
         if (type == Type.BOOL) return new BoolValue( );
         if (type == Type.CHAR) return new CharValue( );
         if (type == Type.FLOAT) return new FloatValue( );
+        if (type == Type.LONG) return new LongValue( );
         throw new IllegalArgumentException("Illegal type in mkValue");
     }
 }
@@ -587,6 +596,24 @@ class FloatValue extends Value {
     }
 
 }
+// TODO
+class longValue extends Value {
+    private float value = 0;
+
+    LongValue () { type = Type.LONG; }
+
+    LongValue (long v ) { this(); value = v; undef = false; }
+
+    long longValue () {
+        assert !undef : "reference to undefined float value";
+        return value;
+    }
+
+    public String toString( ) {
+        if (undef)  return "undef";
+        return "" + value;
+    }
+}
 
 class Binary extends Expression {
 // Binary = Operator op; Expression term1, term2
@@ -631,12 +658,14 @@ class CallExpression extends Expression {
 		return prefix + "(" + acc.substring(0, acc.length()-2) + ")";
 	}
 }
+// TODO
 
 class Operator {
     // Operator = BooleanOp | RelationalOp | ArithmeticOp | UnaryOp
     // BooleanOp = && | ||
     final static String AND = "&&";
     final static String OR = "||";
+    final static String NOR = "!|"
     // RelationalOp = < | <= | == | != | >= | >
     final static String LT = "<";
     final static String LE = "<=";
@@ -700,10 +729,24 @@ class Operator {
     final static String BOOL_GT = "BOOL>";
     final static String BOOL_GE = "BOOL>=";
     // Type specific cast
+    // TODO
     final static String I2F = "I2F";
     final static String F2I = "F2I";
     final static String C2I = "C2I";
     final static String I2C = "I2C";
+    // ADDED FLOAT OPERATIONS
+    final static String LONG_LT = "LONG<";
+    final static String LONG_LE = "LONG<=";
+    final static String LONG_EQ = "LONG==";
+    final static String LONG_NE = "LONG!=";
+    final static String LONG_GT = "LONG>";
+    final static String LONG_GE = "LONG>=";
+    // ArithmeticOp = + | - | * | /
+    final static String LONG_PLUS = "LONG+";
+    final static String LONG_MINUS = "LONG-";
+    final static String LONG_TIMES = "LONG*";
+    final static String LONG_DIV = "LONG/";
+    final static String LONG_NEG = "LONG-NEG";
     
     String val;
     
@@ -712,7 +755,7 @@ class Operator {
     public String toString( ) { return val; }
     public boolean equals(Object obj) { return val.equals(obj); }
     
-    boolean BooleanOp ( ) { return val.equals(AND) || val.equals(OR); }
+    boolean BooleanOp ( ) { return val.equals(AND) || val.equals(OR) || val.equals(NOR); }
     boolean RelationalOp ( ) {
         return val.equals(LT) || val.equals(LE) || val.equals(EQ)
             || val.equals(NE) || val.equals(GT) || val.equals(GE);
@@ -723,7 +766,9 @@ class Operator {
             || val.equals(INT_PLUS) || val.equals(INT_MINUS)
             || val.equals(INT_TIMES) || val.equals(INT_DIV)
             || val.equals(FLOAT_PLUS) || val.equals(FLOAT_MINUS)
-            || val.equals(FLOAT_TIMES) || val.equals(FLOAT_DIV);
+            || val.equals(FLOAT_TIMES) || val.equals(FLOAT_DIV)
+            || val.equals(LONG_PLUS) || val.equals(LONG_MINUS)
+            || val.equals(LONG_TIMES) || val.equals(LONG_DIV);
     }
     boolean NotOp ( ) { return val.equals(NOT) ; }
     boolean NegateOp ( ) { return (val.equals(NEG) || val.equals(INT_NEG) || 
@@ -731,7 +776,8 @@ class Operator {
     boolean intOp ( ) { return val.equals(INT); }
     boolean floatOp ( ) { return val.equals(FLOAT); }
     boolean charOp ( ) { return val.equals(CHAR); }
-
+    boolean longOp ( ) { return val.equals(LONG); }
+    // TODO LONG MAP
     final static String intMap[ ] [ ] = {
         {PLUS, INT_PLUS}, {MINUS, INT_MINUS},
         {TIMES, INT_TIMES}, {DIV, INT_DIV},
@@ -757,7 +803,15 @@ class Operator {
     final static String boolMap[ ] [ ] = {
         {EQ, BOOL_EQ}, {NE, BOOL_NE}, {LT, BOOL_LT},
         {LE, BOOL_LE}, {GT, BOOL_GT}, {GE, BOOL_GE},
-	{OR, OR}, {AND, AND}, {NOT, NOT}
+	{OR, OR}, {AND, AND}, {NOT, NOT}, {NOR, NOR}
+    };
+    // Long Map, work in progress
+    final static String longMap[ ] [ ] = {
+        {PLUS, LONG_PLUS}, {MINUS, LONG_MINUS},
+        {TIMES, LONG_TIMES}, {DIV, LONG_DIV},
+        {EQ, LONG_EQ}, {NE, LONG_NE}, {LT, LONG_LT},
+        {LE, LONG_LE}, {GT, LONG_GT}, {GE, LONG_GE},
+        {NEG, LONG_NEG}
     };
 
     final static private Operator map (String[][] tmap, String op) {
@@ -783,4 +837,8 @@ class Operator {
     final static public Operator boolMap (String op) {
         return map (boolMap, op);
     }    
+    // Mapped Long
+    final static public Operator longMap (String op) {
+        return map (longMap, op);
+    }   
 }

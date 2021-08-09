@@ -19,6 +19,7 @@ public class Token {
     public static final Token intTok = new Token(TokenType.Int, "int");
     public static final Token longTok = new Token(TokenType.Long, "long"); //new data type token for long
     public static final Token norTok = new Token(TokenType.Nor, "!|");    //new binary op token for nor
+    public static final Token forTok = new Token(TokenType.For, "for");   // new constol structure token for 'for'
     public static final Token mainTok = new Token(TokenType.Main, "main");
     public static final Token trueTok = new Token(TokenType.True, "true");
     public static final Token whileTok = new Token(TokenType.While, "while");
@@ -88,6 +89,10 @@ public class Token {
 
     public static Token mkCharLiteral (String name) {
         return new Token(TokenType.CharLiteral, name);
+    }
+
+    public static Token mkLongLiteral (String name) { // Long Literal
+        return new Token(TokenType.LongLiteral, name);
     }
 
     public String toString ( ) {
