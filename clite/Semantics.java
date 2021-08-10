@@ -223,14 +223,14 @@ public class Semantics {
             return new BoolValue(!v.boolValue( ));
         else if (op.val.equals(Operator.INT_NEG))
             return new IntValue(-v.intValue( ));
-        else if (op.val.equals(Operator.INT_LONG))  //new negative long semantic
+        else if (op.val.equals(Operator.LONG_NEG))  //new negative long semantic
             return new LongValue(-v.longValue( ));
         else if (op.val.equals(Operator.FLOAT_NEG)) {
             return new FloatValue(-v.floatValue( ));
         } else if (op.val.equals(Operator.I2F))
             return new FloatValue((float)(v.intValue( )));
-        else if (op.val.equals(Operator.L2F))
-            return new IntValue((int)(v.floatValue( )));
+        else if (op.val.equals(Operator.L2I))
+            return new IntValue((int)(v.longValue( )));
         else if (op.val.equals(Operator.C2I))
             return new IntValue((int)(v.charValue( )));
         else if (op.val.equals(Operator.I2C))

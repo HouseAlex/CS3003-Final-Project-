@@ -189,7 +189,7 @@ public class Parser {
 		t = Type.VOID;
   } else if (token.type().equals(TokenType.Long)){  //new Long data type
     t = Type.LONG;
-	} else error("int | bool | float | char | long");
+	} else error("int | bool | float | char");
         // student exercise
         return t;
     }
@@ -220,7 +220,7 @@ public class Parser {
 		s = print();
 		match(TokenType.Semicolon);
 	} else if (token.type().equals(TokenType.For)) {
-		s = ForStatement(); // Added for statement
+		s = forStatement(); // Added for statement
 	} else {
 		match(TokenType.Semicolon);
 	}
@@ -289,7 +289,7 @@ public class Parser {
         return new Loop(test, st);  // student exercise
     }
 
-	private ForLoop forStatement () {
+	private Loop forStatement () {
 		// forStatement --> for ( Expression; expression; expression; ) Statement 1 or 3 expressions????
 		// TODO
 	match(token.type());
@@ -299,7 +299,7 @@ public class Parser {
 	Expression step = expression();
 	match(TokenType.RightParen);
 	Statement st = statement();
-	return new ForLoop(st, begin, condition, step)
+	return new Loop(step, st);
 
 	}
 

@@ -332,7 +332,7 @@ public class StaticTypeCheck {
 	    return;
 	}
   //TO DO: For loop
-    if (s instance of ForLoop) {
+    if (s instanceof ForLoop) {
         ForLoop f = (ForLoop) s;
         V(f.test, tm);
         V(f.body, tm);

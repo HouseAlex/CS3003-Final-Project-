@@ -142,8 +142,7 @@ public class Lexer {
 		        return chkOpt('=', Token.notTok,
 				   Token.noteqTok);
             if (ch == '|') { // Added != Case
-                return chkOpt('|', Token.notTok,
-                    Token.norTok);
+                return Token.norTok;
             }
         default:  error("Illegal character " + ch); 
             } // switch
@@ -198,7 +197,7 @@ public class Lexer {
     }
 
     static public void main ( String[] argv ) {
-        Lexer lexer = new Lexer(argv[0]);
+        Lexer lexer = new Lexer("hello.cpp");
         Token tok = lexer.next( );
         while (tok != Token.eofTok) {
             System.out.println(tok.toString());
