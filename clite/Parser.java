@@ -189,7 +189,7 @@ public class Parser {
 		t = Type.VOID;
   } else if (token.type().equals(TokenType.Long)){  //new Long data type
     t = Type.LONG;
-	} else error("int | bool | float | char | long");
+	} else error("int | bool | float | char");
         // student exercise
         return t;
     }
