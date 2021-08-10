@@ -137,7 +137,7 @@ public class TypeTransformer {
         if (s instanceof ForLoop) {
             ForLoop f = (ForLoop)s;
             Expression test = T (f.test, tm);
-            Statement body - T (f.body, tm);
+            Statement body = T (f.body, tm);
             return new ForLoop(test, body);
         }
         if (s instanceof Block) {

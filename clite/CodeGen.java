@@ -139,6 +139,7 @@ public class CodeGen {
         } if (s instanceof Loop) {
 			M((Loop)s, symtable, jfile);
 			return;
+        }
 			if (s instanceof ForLoop) {  //for loop
             M((ForLoop)s, symtable, jfile);
             return;
@@ -267,7 +268,25 @@ public class CodeGen {
     }
 
     void M (Print p, SymbolTable symtable, JasminFile jfile) throws IOException {
-	jfile.writeln("getstatic java/lang/System/out Ljava/io/PrintStream;");
+	jfile.writeln("getstatic java/lang/System/out Ljava/io/PrintStream;"); 
+	M(p.to_print, symtable, jfile);
+
+	String print_type;
+	Type e_type = typeOf(p.to_print, symtable);
+
+	if (e_type.equals(Type.FLOAT))
+		print_type = "F";
+	else if (e_type.equals(Type.INT))
+		print_type = "I";
+	else if (e_type.equals(Type.CHAR))
+		print_type = "C";
+	else if (e_type.equals(Type.LONG))
+		print_type = "L";
+	else //It's a Bool
+		print_type = "Z";
+
+	jfile.writeln("invokevirtual java/io/PrintStream/println(" + print_type + ")V");
+    }
 
 	void M (ForLoop f, SymbolTable symtable, JasminFile jfile) throws IOException {		//needs work
 
@@ -290,22 +309,7 @@ public class CodeGen {
 
     }
 
-	M(p.to_print, symtable, jfile);
 
-	String print_type;
-	Type e_type = typeOf(p.to_print, symtable);
-
-	if (e_type.equals(Type.FLOAT))
-		print_type = "F";
-	else if (e_type.equals(Type.INT))
-		print_type = "I";
-	else if (e_type.equals(Type.CHAR))
-		print_type = "C";
-	else //It's a Bool
-		print_type = "Z";
-
-	jfile.writeln("invokevirtual java/io/PrintStream/println(" + print_type + ")V");
-    }
 
     void M (CallStatement c, SymbolTable symtable, JasminFile jfile) throws IOException {
 	// evaluate the args and push them to the stack
@@ -357,6 +361,7 @@ public class CodeGen {
             else if (u.op.intOp( ))    return (Type.INT);
             else if (u.op.floatOp( )) return (Type.FLOAT);
             else if (u.op.charOp( ))  return (Type.CHAR);
+            else if (u.op.charOp( )) return (Type.LONG);
 	    System.out.println("nothing in Unary!");
         }
 	if (e instanceof CallExpression) {

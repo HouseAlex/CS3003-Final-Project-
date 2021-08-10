@@ -515,7 +515,7 @@ abstract class Value extends Expression {
 
     long longValue () {
         assert false : "should never reach here";
-        return 0L
+        return 0L;
     }
 
     boolean isUndef( ) { return undef; }
@@ -618,12 +618,12 @@ class FloatValue extends Value {
 
 }
 // TODO
-class longValue extends Value {
+class LongValue extends Value {
     private long value = 0;
 
     LongValue () { type = Type.LONG; }
 
-    LongValue (long v ) { this(); value = v; undef = false; }
+    LongValue (long v) { this( ); value = v; undef = false; }
 
     long longValue () {
         assert !undef : "reference to undefined long value";
@@ -686,7 +686,7 @@ class Operator {
     // BooleanOp = && | ||
     final static String AND = "&&";
     final static String OR = "||";
-    final static String NOR = "!|"
+    final static String NOR = "!|";
     // RelationalOp = < | <= | == | != | >= | >
     final static String LT = "<";
     final static String LE = "<=";
